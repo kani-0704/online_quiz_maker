@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Application</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-image: url("https://www.itl.cat/pngfile/big/55-556325_plain-simple-wallpapers-simple-plain-background-hd.jpg");
+        background-size: cover;
+        background-position: center;
+        margin: 0;
+        padding: 20px;
+        color: black;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        background-image: url("https://www.shutterstock.com/image-illustration/abstract-bubbles-colorfully-blurred-canvas-600nw-2372127655.jpg");
+        background-size: cover;
+        background-position: center;
+        color: black;
+      }
+      h1,
+      h2 {
+        text-align: center;
+      }
+      button {
+        display: block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .hidden {
+        display: none;
+      }
+      .correct {
+        color: green;
+        font-weight: bold;
+      }
+      .wrong {
+        color: red;
+        font-weight: bold;
+      }
+      .highlighted-wrong {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 3px 5px;
+        font-weight: bold;
+        color: red;
+        text-decoration: underline;
+      }
+      .question-result {
+        margin-bottom: 15px;
+      }
+      .option {
+        display: block;
+        margin-bottom: 10px;
+      }
+      #prevBtn {
+        float: bottom;
+      }
+      #nextBtn {
+        float: center;
+      }
+
+      .button-container {
+        overflow: hidden;
+        text-align: center;
+      }
+      #timer {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #d9534f;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Welcome Section -->
+    <div id="welcome" class="container" style="text-align: center">
+      <h1>Welcome to the Quiz!</h1>
+      <button onclick="showRegistration()">Start Quiz</button>
+    </div>
+
+    <!-- Registration Section -->
+    <div id="registration" class="container hidden" style="text-align: center">
+      <h1>Registration</h1>
+      <form id="registrationForm" style="text-align: center">
+        <input
+          type="text"
+          placeholder="Username"
+          required
+          style="text-align: center"
+        />
+        <br /><br />
+        <input
+          type="email"
+          placeholder="Email ID"
+          required
+          style="text-align: center"
+        />
+        <br /><br />
+        <input
+          type="password"
+          placeholder="Password"
+          required
+          style="text-align: center"
+        />
+        <br /><br />
+        <button type="submit">Register</button>
+      </form>
+    </div>
+
+    <!-- Instructions Section -->
+    <div id="instructions" class="container hidden" style="text-align: center">
+      <h1>Instructions</h1>
+      <p>Category: General Knowledge</p>
+      <p>Time Duration: 15 minutes</p>
+      <p>Number of Questions: 10</p>
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Section -->
+    <div id="quiz" class="container hidden" style="text-align: center">
+      <h1>Quiz</h1>
+      <div id="timer"></div>
+      <!-- Timer Display -->
+      <form id="quizForm">
+        <div id="questionContainer"></div>
+        <div class="button-container">
+          <button
+            type="button"
+            id="prevBtn"
+            onclick="prevQuestion()"
+            class="hidden"
+          >
+            Previous
+          </button>
+          <button type="button" id="nextBtn" onclick="nextQuestion()">
+            Next
+          </button>
+          <button type="submit" id="submitBtn" class="hidden">Submit</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results Section -->
+    <div id="result" class="container hidden" style="text-align: center">
+      <h1>Results</h1>
+      <h2>
+        Your Score: <span id="score"></span> / <span id="totalQuestions"></span>
+      </h2>
+      <div id="correctAnswersContainer"></div>
+      <div id="wrongAnswersContainer"></div>
+      <button onclick="showThankYou()">Thank You</button>
+    </div>
+
+    <!-- Thank You Section -->
+    <div id="thankyou" class="container hidden" style="text-align: center">
+      <h1>Thank You for Participating!</h1>
+      <p>We hope you enjoyed the quiz.</p>
+      <button onclick="resetQuiz()">Back to Home</button>
+    </div>
+
+    <script>
+      const questions = [
+        {
+          question: "1. Which planet is known as the Red Planet?",
+          options: ["Earth", "Mars", "Jupiter", "Saturn", "Uranus"],
+          answer: "Mars",
+        },
+        {
+          question: "2. Who painted the famous painting 'The Starry Night'?",
+          options: [
+            "Leonardo da Vinci",
+            "Vincent van Gogh",
+            "Pablo Picasso",
+            "Claude Monet",
+            "Johannes Vermeer",
+          ],
+          answer: "Vincent van Gogh",
+        },
+        {
+          question: "3. Which element is represented by the symbol 'H'?",
+          options: ["Helium", "Hydrogen", "Oxygen", "Nitrogen", "Carbon"],
+          answer: "Hydrogen",
+        },
+        {
+          question:
+            "4. Who is the author of the famous novel 'To Kill a Mockingbird'?",
+          options: [
+            "F. Scott Fitzgerald",
+            "Harper Lee",
+            "Jane Austen",
+            "J.K. Rowling",
+            "Charles Dickens",
+          ],
+          answer: "Harper Lee",
+        },
+        {
+          question: "5. Which city is the capital of France?",
+          options: ["Berlin", "Paris", "London", "Rome", "Madrid"],
+          answer: "Paris",
+        },
+        {
+          question: "6. Who is the founder of Apple Inc.?",
+          options: [
+            "Steve Jobs",
+            "Bill Gates",
+            "Mark Zuckerberg",
+            "Larry Page",
+            "Sergey Brin",
+          ],
+          answer: "Steve Jobs",
+        },
+        {
+          question: "7. Which planet is the largest in our solar system?",
+          options: ["Earth", "Saturn", "Jupiter", "Uranus", "Neptune"],
+          answer: "Jupiter",
+        },
+        {
+          question:
+            "8. Who is the author of the famous novel 'Pride and Prejudice'?",
+          options: [
+            "Jane Austen",
+            "Charles Dickens",
+            "J.K. Rowling",
+            "F. Scott Fitzgerald",
+            "Harper Lee",
+          ],
+          answer: "Jane Austen",
+        },
+        {
+          question: "9. What is the capital of Japan?",
+          options: ["Seoul", "Beijing", "Tokyo", "Bangkok", "Hanoi"],
+          answer: "Tokyo",
+        },
+        {
+          question: "10. Which gas do plants absorb from the atmosphere?",
+          options: [
+            "Oxygen",
+            "Nitrogen",
+            "Carbon Dioxide",
+            "Hydrogen",
+            "Helium",
+          ],
+          answer: "Carbon Dioxide",
+        },
+      ];
+
+      let currentQuestionIndex = 0;
+      const userAnswers = [];
+      let timer;
+      let timeRemaining = 15 * 60;
+
+      function showRegistration() {
+        document.getElementById("welcome").classList.add("hidden");
+        document.getElementById("registration").classList.remove("hidden");
+      }
+
+      document.getElementById("registrationForm").onsubmit = function () {
+        document.getElementById("registration").classList.add("hidden");
+        document.getElementById("instructions").classList.remove("hidden");
+        return false;
+      };
+
+      function startQuiz() {
+        document.getElementById("instructions").classList.add("hidden");
+        document.getElementById("quiz").classList.remove("hidden");
+        loadQuestion();
+        startTimer();
+      }
+
+      function loadQuestion() {
+        const questionContainer = document.getElementById("questionContainer");
+        questionContainer.innerHTML =
+          `<h2>${questions[currentQuestionIndex].question}</h2>` +
+          questions[currentQuestionIndex].options
+            .map(
+              (option) =>
+                `<div class="option"><label>
+                    <input type="radio" name="answer" value="${option}">
+                    ${option}
+                </label></div>`
+            )
+            .join("");
+
+        document
+          .getElementById("prevBtn")
+          .classList.toggle("hidden", currentQuestionIndex === 0);
+
+        document
+          .getElementById("nextBtn")
+          .classList.toggle(
+            "hidden",
+            currentQuestionIndex === questions.length - 1
+          );
+
+        document
+          .getElementById("submitBtn")
+          .classList.toggle(
+            "hidden",
+            currentQuestionIndex !== questions.length - 1
+          );
+      }
+
+      function nextQuestion() {
+        saveAnswer();
+        currentQuestionIndex++;
+        loadQuestion();
+      }
+
+      function prevQuestion() {
+        saveAnswer();
+        currentQuestionIndex--;
+        loadQuestion();
+      }
+
+      function saveAnswer() {
+        const selectedOption = document.querySelector(
+          'input[name="answer"]:checked'
+        );
+        if (selectedOption) {
+          userAnswers[currentQuestionIndex] = selectedOption.value;
+        }
+      }
+
+      document.getElementById("quizForm").onsubmit = function () {
+        saveAnswer();
+        showResults();
+        return false;
+      };
+
+      function startTimer() {
+        timer = setInterval(function () {
+          if (timeRemaining <= 0) {
+            clearInterval(timer);
+            showResults();
+          } else {
+            timeRemaining--;
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+
+      function updateTimerDisplay() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        document.getElementById("timer").innerText = `${minutes}m ${seconds}s`;
+      }
+
+      function showResults() {
+        const correctAnswers = questions.map((q) => q.answer);
+        let score = 0;
+        let correctAnswersList = "";
+        let wrongAnswersList = "";
+
+        questions.forEach((question, index) => {
+          const isCorrect = userAnswers[index] === question.answer;
+          if (isCorrect) {
+            score++;
+            correctAnswersList += `<div class="question-result">
+                        <p><strong>${question.question}</strong></p>
+                        <p>Your Answer: <span class="correct">${userAnswers[index]}</span></p>
+                    </div>`;
+          } else {
+            wrongAnswersList += `<div class="question-result">
+                        <p><strong>${question.question}</strong></p>
+                        <p>Your Answer: <span class="wrong highlighted-wrong">${userAnswers[index]}</span></p>
+                        <p>Correct Answer: <span class="correct">${question.answer}</span></p>
+                    </div>`;
+          }
+        });
+
+        document.getElementById("score").innerText = score;
+        document.getElementById("totalQuestions").innerText = questions.length;
+        document.getElementById(
+          "correctAnswersContainer"
+        ).innerHTML = `<h3>Correct Answers:</h3>${correctAnswersList}`;
+        document.getElementById(
+          "wrongAnswersContainer"
+        ).innerHTML = `<h3>Wrong Answers:</h3>${wrongAnswersList}`;
+
+        document.getElementById("quiz").classList.add("hidden");
+        document.getElementById("result").classList.remove("hidden");
+      }
+
+      function showThankYou() {
+        document.getElementById("result").classList.add("hidden");
+        document.getElementById("thankyou").classList.remove("hidden");
+      }
+
+      function resetQuiz() {
+        currentQuestionIndex = 0;
+        userAnswers.length = 0;
+        timeRemaining = 45 * 60;
+        document.getElementById("thankyou").classList.add("hidden");
+        document.getElementById("welcome").classList.remove("hidden");
+      }
+    </script>
+  </body>
+</html>
